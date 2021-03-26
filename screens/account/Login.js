@@ -1,10 +1,10 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
-export default function Account() {
+export default function Login() {
     return (
         <View>
-            <Text>Account</Text>
+            <Text>Login</Text>
         </View>
     )
 }
