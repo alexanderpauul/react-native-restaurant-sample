@@ -57,7 +57,7 @@ export default function InfoUser({ user, setLoading, setLoadingText }) {
 
       <View style={styles.infoUser}>
         <Text style={styles.displayName}>
-          {user.displayName ? user.display.Name : "Anonimo"}
+          {user.displayName ? user.displayName : "Anonimo"}
         </Text>
         <Text>{user.email}</Text>
       </View>

@@ -6,6 +6,7 @@ import { closeSession, getCurrentUser } from "../../utils/actions";
 import Toast from "react-native-easy-toast";
 import Loading from "../../components/Loading";
 import InfoUser from "../../components/account/InfoUser";
+import AccountIOptions from "../../components/account/AccountIOptions";
 
 export default function UserLogged() {
   const navigation = useNavigation();
@@ -13,10 +14,12 @@ export default function UserLogged() {
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
   const [user, setUser] = useState(null);
+  const [reloadUser, setReloadUser] = useState(false);
 
   useEffect(() => {
     setUser(getCurrentUser());
-  }, []);
+    setReloadUser(false);
+  }, [reloadUser]);
 
   return (
     <View style={styles.form}>
@@ -28,10 +31,13 @@ export default function UserLogged() {
             setLoadingText={setLoadingText}
           />
 
-          <Text>Account Options</Text>
+          <AccountIOptions
+            user={user}
+            toastRef={toastRef}
+            setReloadUser={setReloadUser}
+          />
         </View>
       )}
-      <Text>Account Options</Text>
 
       <Button
         title="Cerrar Sesion"
