@@ -35,7 +35,7 @@ export default function LoginForm() {
     }
 
     if (isEmpty(formData.password)) {
-      setErrorPassword("Debes ingresar una contrasena.");
+      setErrorPassword("Debes ingresar una contraseña.");
       isValid = false;
     }
 
@@ -71,7 +71,7 @@ export default function LoginForm() {
         defaultValue={formData.email}
       />
       <Input
-        placeholder="Ingrega tu contrasena..."
+        placeholder="Ingrega tu contraseña..."
         containerStyle={styles.input}
         password={true}
         secureTextEntry={!showPassword}

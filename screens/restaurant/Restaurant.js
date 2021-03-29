@@ -1,0 +1,48 @@
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Icon } from "react-native-elements";
+import firebase from "firebase/app";
+import { getCurrentUser, isUserLogged } from "../../utils/actions";
+import Loading from "../../components/Loading";
+
+export default function Restaurant() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged((userInfo) => {
+      userInfo ? setUser(true) : setUser(false);
+    });
+  }, []);
+
+  if (user == null) {
+    return <Loading isVisible={true} text="Cargando..." />;
+  }
+
+  return (
+    <View style={styles.form}>
+      <Text>Restaurant</Text>
+
+      {user && (
+        <Icon
+          type="material-community"
+          name="plus"
+          color="#ec1c1c"
+          reverse
+          containerStyle={styles.btnForm}
+        />
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  form: { flex: 1 },
+  btnForm: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    shadowColor: "black",
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
+  },
+});

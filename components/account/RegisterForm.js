@@ -38,14 +38,14 @@ export default function RegisterForm() {
 
     if (size(formData.password) < 6) {
       setErrorPassword(
-        "Debes ingresar una contrasena de al menos seis caracteres."
+        "Debes ingresar una contrasena de al menos 6 caracteres."
       );
       isValid = false;
     }
 
     if (size(formData.confirm) < 6) {
       setErrorConfirm(
-        "Debes ingresar una confirmacion de contrasena de al menos seis caracteres."
+        "Debes ingresar una confirmacion de contrasena de al menos 6 caracteres."
       );
       isValid = false;
     }

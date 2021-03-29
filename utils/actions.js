@@ -5,9 +5,9 @@ import { filetoBlob } from "./helpers";
 
 const db = firebase.firestore(firebaseApp);
 
-export const isUserLogged = () => {
+export const isUserLogged = async () => {
   let isLogged = false;
-  firebase.auth().onAuthStateChanged((user) => {
+  await firebase.auth().onAuthStateChanged((user) => {
     user !== null && (isLogged = true);
   });
   return isLogged;
@@ -71,6 +71,50 @@ export const updateProfile = async (data) => {
 
   try {
     await firebase.auth().currentUser.updateProfile(data);
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
+
+export const validateLoginUser = async (password) => {
+  const result = { statusResponse: true, error: null };
+  const user = getCurrentUser();
+  const credentials = firebase.auth.EmailAuthProvider.credential(
+    user.email,
+    password
+  );
+
+  try {
+    await user.reauthenticateWithCredential(credentials);
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
+
+export const updateEmail = async (email) => {
+  const result = { statusResponse: true, error: null };
+
+  try {
+    await firebase.auth().currentUser.updateEmail(email);
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
+
+export const updatePassword = async (password) => {
+  const result = { statusResponse: true, error: null };
+
+  try {
+    await firebase.auth().currentUser.updatePassword(password);
   } catch (error) {
     result.statusResponse = false;
     result.error = error;
