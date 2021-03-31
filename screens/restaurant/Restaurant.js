@@ -5,7 +5,7 @@ import firebase from "firebase/app";
 import { getCurrentUser, isUserLogged } from "../../utils/actions";
 import Loading from "../../components/Loading";
 
-export default function Restaurant() {
+export default function Restaurant({ navigation }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -29,6 +29,7 @@ export default function Restaurant() {
           color="#ec1c1c"
           reverse
           containerStyle={styles.btnForm}
+          onPress={() => navigation.navigate("add-restaurant")}
         />
       )}
     </View>
