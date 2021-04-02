@@ -5,13 +5,17 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import Loading from "../../components/Loading";
 import AddRestaurantForm from "../../components/restaurant/AddRestaurantForm";
 
-export default function AddRestaurant({ navigate }) {
+export default function AddRestaurant({ navigation }) {
   const toastRef = useRef();
   const [loading, setLoading] = useState(false);
 
   return (
     <KeyboardAwareScrollView>
-      <AddRestaurantForm toastRef={toastRef} setLoading={setLoading} />
+      <AddRestaurantForm
+        toastRef={toastRef}
+        setLoading={setLoading}
+        navigation={navigation}
+      />
       <Loading isVisible={loading} text="Creando Restaurante..." />
       <Toast ref={toastRef} position="bottom" opacity={0.9} />
     </KeyboardAwareScrollView>
