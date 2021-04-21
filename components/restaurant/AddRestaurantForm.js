@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Button, Input } from "react-native-elements";
+import { StyleSheet, Text, View, ScrollView, Alert } from "react-native";
+import { Button, Input, Icon, Avatar } from "react-native-elements";
 import CountryPicker from "react-native-country-picker-modal";
+import { map, size, filter } from "lodash";
+import { loadImageFromGallery } from "../../utils/helpers";
 
 export default function AddRestaurantForm({
   toastRef,
@@ -14,6 +16,7 @@ export default function AddRestaurantForm({
   const [errorEmail, setErrorEmail] = useState(null);
   const [errorAddress, setErrorAddress] = useState(null);
   const [errorPhone, setErrorPhone] = useState(null);
+  const [imagesSelected, setImagesSelected] = useState([]);
 
   const addRestaurant = () => {
     console.log(formData);
@@ -32,6 +35,12 @@ export default function AddRestaurantForm({
         errorPhone={errorPhone}
       />
 
+      <UploadImage
+        toastRef={toastRef}
+        imagesSelected={imagesSelected}
+        setImagesSelected={setImagesSelected}
+      />
+
       <Button
         title="Crear Restaurante"
         containerStyle={styles.btnContainer}
@@ -42,6 +51,59 @@ export default function AddRestaurantForm({
   );
 }
 
+function UploadImage({ toastRef, imagesSelected, setImagesSelected }) {
+  const imageSelect = async () => {
+    const response = await loadImageFromGallery([4, 3]);
+    if (!response.status) {
+      toastRef.current.show("No ha seleccionado ninguna imagen", 3000);
+      return;
+    }
+
+    setImagesSelected([...imagesSelected, response.image]);
+  };
+
+  const removeImage = (image) => {
+    Alert.alert(
+      "Eliminar imagen",
+      "¿Estas seguro que quieres eliminar la imagen?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Si",
+          onPress: () => {
+            setImagesSelected(
+              filter(imagesSelected, (imageUrl) => imageUrl != image)
+            );
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  return (
+    <ScrollView horizontal style={styles.viewImages}>
+      {size(imagesSelected) < 10 && (
+        <Icon
+          type="material-community"
+          name="camera"
+          color="#7a7a7a"
+          containerStyle={styles.containerIcon}
+          onPress={imageSelect}
+        />
+      )}
+      {map(imagesSelected, (imageRestaurant, index) => (
+        <Avatar
+          key={index}
+          style={styles.miniaturesStyle}
+          source={{ uri: imageRestaurant }}
+          onPress={() => removeImage(imageRestaurant)}
+        />
+      ))}
+    </ScrollView>
+  );
+}
+
 function FormAdd({
   formData,
   setFormData,
@@ -49,7 +111,7 @@ function FormAdd({
   errorDescription,
   errorEmail,
   errorAddress,
-  errorPhone
+  errorPhone,
 }) {
   const [country, setCountry] = useState("DO");
   const [callingCode, setCallingCode] = useState("809");
@@ -129,10 +191,10 @@ const defaultFormValues = () => {
   return {
     name: "",
     descriptionn: "",
+    email: "",
     phone: "",
     country: "DO",
     callingCode: "809",
-    email: "",
   };
 };
 
@@ -150,4 +212,14 @@ const styles = StyleSheet.create({
   input: { width: "100%", marginTop: 10 },
   btnContainer: { marginTop: 10, width: "100%", alignSelf: "center" },
   btn: { backgroundColor: "#ec1c1c" },
+  viewImages: { flexDirection: "row" },
+  containerIcon: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+    height: 70,
+    width: 70,
+    backgroundColor: "#e3e3e3",
+  },
+  miniaturesStyle: { width: 70, height: 70, marginRight: 10 },
 });
