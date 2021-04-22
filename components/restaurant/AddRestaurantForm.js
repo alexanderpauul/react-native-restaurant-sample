@@ -1,9 +1,19 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, ScrollView, Alert } from "react-native";
-import { Button, Input, Icon, Avatar } from "react-native-elements";
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Alert,
+  Dimensions,
+} from "react-native";
+import { Button, Input, Icon, Avatar, Image } from "react-native-elements";
 import CountryPicker from "react-native-country-picker-modal";
 import { map, size, filter } from "lodash";
 import { loadImageFromGallery } from "../../utils/helpers";
+import Modal from "../../components/Modal";
+
+const widthScreen = Dimensions.get("window").width;
 
 export default function AddRestaurantForm({
   toastRef,
@@ -17,6 +27,8 @@ export default function AddRestaurantForm({
   const [errorAddress, setErrorAddress] = useState(null);
   const [errorPhone, setErrorPhone] = useState(null);
   const [imagesSelected, setImagesSelected] = useState([]);
+  const [isVisibleMap, setIsVisibleMap] = useState(false);
+  const [locationRestaurant, setLocationRestaurant] = useState(null);
 
   const addRestaurant = () => {
     console.log(formData);
@@ -24,7 +36,8 @@ export default function AddRestaurantForm({
   };
 
   return (
-    <View style={styles.form}>
+    <ScrollView style={styles.form}>
+      <ImageRestaurant imageRestaurant={imagesSelected[0]} />
       <FormAdd
         formData={formData}
         setFormData={setFormData}
@@ -33,6 +46,7 @@ export default function AddRestaurantForm({
         errorEmail={errorEmail}
         errorAddress={errorAddress}
         errorPhone={errorPhone}
+        setIsVisibleMap={setIsVisibleMap}
       />
 
       <UploadImage
@@ -46,6 +60,40 @@ export default function AddRestaurantForm({
         containerStyle={styles.btnContainer}
         buttonStyle={styles.btn}
         onPress={() => addRestaurant()}
+      />
+
+      <MapRestaurant
+        isVisibleMap={isVisibleMap}
+        setIsVisibleMap={setIsVisibleMap}
+        setLocationRestaurant={setLocationRestaurant}
+        toastRef={toastRef}
+      />
+    </ScrollView>
+  );
+}
+function MapRestaurant({
+  isVisibleMap,
+  setIsVisibleMap,
+  setLocationRestaurant,
+  toastRef,
+}) {
+  return (
+    <Modal isVisible={isVisibleMap} setIsVisibleMap={isVisibleMap}>
+      <Text>Map goes here...</Text>
+    </Modal>
+  );
+}
+
+function ImageRestaurant({ imageRestaurant }) {
+  return (
+    <View style={styles.viewPhoto}>
+      <Image
+        style={{ width: widthScreen, height: 200 }}
+        source={
+          imageRestaurant
+            ? { uri: imageRestaurant }
+            : require("../../assets/no-image.png")
+        }
       />
     </View>
   );
@@ -112,6 +160,7 @@ function FormAdd({
   errorEmail,
   errorAddress,
   errorPhone,
+  setIsVisibleMap,
 }) {
   const [country, setCountry] = useState("DO");
   const [callingCode, setCallingCode] = useState("809");
@@ -136,6 +185,12 @@ function FormAdd({
         defaultValue={formData.address}
         onChange={(e) => onChange(e, "address")}
         errorMessage={errorAddress}
+        rightIcon={{
+          type: "material-community",
+          name: "google-maps",
+          color: "#c2c2c2",
+          onPress: () => setIsVisibleMap(true),
+        }}
       />
       <Input
         placeholder="Correo electrónico"
@@ -222,4 +277,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#e3e3e3",
   },
   miniaturesStyle: { width: 70, height: 70, marginRight: 10 },
+  viewPhoto: { alignItems: "center", height: 200, marginBottom: 20 },
 });
