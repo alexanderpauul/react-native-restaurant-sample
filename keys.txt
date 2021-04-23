@@ -1,0 +1,10 @@
+AIzaSyDYZOFV7wYhcpEU6EQBjtclXLKi8GzglJI
+
+
+Google Certificate Fingerprint:     B9:3F:C2:20:98:86:30:AD:FE:C8:B6:C4:1C:D4:76:D1:05:F9:64:A0
+Google Certificate Hash (SHA-1):    B93FC220988630ADFEC8B6C41CD476D105F964A0
+Google Certificate Hash (SHA-256):  1EB4F47982DE320FE74AA4292AB9FA17FF0B3DA714C501A29ACDF016E3706BAF
+Facebook Key Hash:                  uT/CIJiGMK3+yLbEHNR20QX5ZKA=
+
+
+C:\Users\Alexander\Documents\Projects\react-native-restaurant-sample

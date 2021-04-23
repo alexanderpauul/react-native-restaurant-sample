@@ -17,12 +17,19 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alpauul.restaurants",
     },
     "android": {
+      "package": "com.alpauul.restaurants",      
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDYZOFV7wYhcpEU6EQBjtclXLKi8GzglJI"
+        }
       },
       "permissions": [
         "CAMERA_ROLL",
