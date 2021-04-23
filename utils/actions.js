@@ -135,3 +135,69 @@ export const addDocumentWithoutId = async (collection, data) => {
 
   return result;
 };
+
+export const getRestaurants = async (limitRestaurantes) => {
+  const result = {
+    statusResponse: true,
+    error: null,
+    restaurants: [],
+    startRestaurant: null,
+  };
+
+  try {
+    const response = await db
+      .collection("restaurants")
+      .orderBy("createDate", "desc")
+      .limit(limitRestaurantes)
+      .get();
+
+    if (response.docs.length > 0) {
+      result.startRestaurant = response.docs[response.docs.length - 1];
+    }
+    response.forEach((doc) => {
+      const restaurant = doc.data();
+      restaurant.id = doc.id;
+      result.restaurants.push(restaurant);
+    });
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
+
+export const getMoreRestaurants = async (
+  limitRestaurantes,
+  startRestaurant
+) => {
+  const result = {
+    statusResponse: true,
+    error: null,
+    restaurants: [],
+    startRestaurant: null,
+  };
+
+  try {
+    const response = await db
+      .collection("restaurants")
+      .orderBy("createDate", "desc")
+      .startAfter(startRestaurant.data().createDate)
+      .limit(limitRestaurantes)
+      .get();
+
+    if (response.docs.length > 0) {
+      result.startRestaurant = response.docs[response.docs.length - 1];
+    }
+    response.forEach((doc) => {
+      const restaurant = doc.data();
+      restaurant.id = doc.id;
+      result.restaurants.push(restaurant);
+    });
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};

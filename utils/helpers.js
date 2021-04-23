@@ -2,6 +2,7 @@ import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
 import { Alert } from "react-native";
 import * as Location from "expo-location";
+import { size } from "lodash";
 
 export function validateEmail(email) {
   const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -64,4 +65,11 @@ export const getCurrentLocation = async () => {
   response.location = location;
 
   return response;
+};
+
+export const formatPhone = (callingCode, phone) => {
+  if (size(phone) < 7) {
+    return `+1(${callingCode}) ${phone}`;
+  }
+  return `+1 (${callingCode}) ${phone.substr(0, 3)} ${phone.substr(3,4)}`;
 };

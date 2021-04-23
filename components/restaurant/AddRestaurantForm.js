@@ -53,7 +53,7 @@ export default function AddRestaurantForm({
       name: formData.name,
       address: formData.address,
       description: formData.description,
-      email: formData.name,
+      email: formData.email,
       callingCode: formData.callingCode,
       phone: formData.phone,
       location: locationRestaurant,
@@ -80,7 +80,7 @@ export default function AddRestaurantForm({
       return;
     }
 
-    // navigation.navigate("restaurants");
+    navigation.navigate("restaurant");
   };
 
   const uploadmages = async () => {
