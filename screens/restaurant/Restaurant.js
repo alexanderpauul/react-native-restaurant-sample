@@ -29,18 +29,21 @@ export default function Restaurant({ navigation }) {
   }, []);
 
   useFocusEffect(
-    useCallback(async () => {
-      setLoading(true);
-      const response = await getRestaurants(limitRestaurantes);
-      if (response.statusResponse) {
-        setStartRestaurant(response.startRestaurant);
-        setRestaurants(response.restaurants);
+    useCallback(() => {
+      async function getData() {
+        setLoading(true);
+        const response = await getRestaurants(limitRestaurantes);
+        if (response.statusResponse) {
+          setStartRestaurant(response.startRestaurant);
+          setRestaurants(response.restaurants);
+        }
+        setLoading(false);
       }
-      setLoading(false);
+      getData();
     }, [])
   );
 
-  const handleLoadMore = async () => {    
+  const handleLoadMore = async () => {
     if (!startRestaurant) {
       return;
     }
@@ -50,7 +53,6 @@ export default function Restaurant({ navigation }) {
       limitRestaurantes,
       startRestaurant
     );
-
 
     if (response.statusResponse) {
       setStartRestaurant(response.startRestaurant);
@@ -69,7 +71,7 @@ export default function Restaurant({ navigation }) {
         <ListRestaurants
           restaurants={restaurants}
           navigation={navigation}
-          handleLoadMore={handleLoadMore}
+          handleLoadMore={() => handleLoadMore()}
         />
       ) : (
         <View style={styles.notFoundView}>

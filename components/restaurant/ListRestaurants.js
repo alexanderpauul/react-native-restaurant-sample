@@ -44,8 +44,12 @@ function Restaurant({ restaurant, navigation, handleLoadMore }) {
 
   const imageRestaurant = images[0];
 
+  const goRestaurant = () => {
+    navigation.navigate("restaurant-info", { id, name });
+  };
+
   return (
-    <TouchableOpacity>
+    <TouchableOpacity onPress={() => goRestaurant()}>
       <View style={styles.viewRestaurant}>
         <View style={styles.viewRestaurantImage}>
           <Image

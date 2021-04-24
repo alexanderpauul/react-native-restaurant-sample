@@ -201,3 +201,18 @@ export const getMoreRestaurants = async (
 
   return result;
 };
+
+export const getDocumentById = async (collection, id) => {
+  const result = { statusResponse: true, error: null, document: null };
+
+  try {
+    const response = await db.collection(collection).doc(id).get();
+    result.document = response.data();
+    result.document.id = response.id;
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
