@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { ActivityIndicator } from "react-native";
 import {
   TouchableOpacity,
@@ -16,6 +16,7 @@ export default function ListRestaurants({
   navigation,
   handleLoadMore,
 }) {
+  const navListRef = useRef(null);
   return (
     <View>
       <FlatList
@@ -24,7 +25,11 @@ export default function ListRestaurants({
         onEndReachedThreshold={0.5}
         onEndReached={handleLoadMore}
         renderItem={(restaurant) => (
-          <Restaurant restaurant={restaurant} navigation={navigation} />
+          <Restaurant
+            ref={navListRef}
+            restaurant={restaurant}
+            navigation={navigation}
+          />
         )}
       />
     </View>
@@ -93,11 +98,11 @@ const styles = StyleSheet.create({
   },
   restaurantInfo: {
     paddingTop: 2,
-    color: "grey",
+    color: "gray",
   },
   restaurantDescription: {
     paddingTop: 2,
-    color: "grey",
+    color: "gray",
     width: "60%",
   },
 });

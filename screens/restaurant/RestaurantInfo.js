@@ -11,6 +11,10 @@ import { ListItem, Rating, Icon, Input, Button } from "react-native-elements";
 import Loading from "../../components/Loading";
 import CarouselImages from "../../components/CarouselImages";
 import { getDocumentById } from "../../utils/actions";
+import { formatPhone } from "../../utils/helpers";
+import MapRestaurant from "../../components/restaurant/MapRestaurant";
+import { map } from "lodash";
+import ListReviews from "../../components/restaurant/ListReviews";
 
 const widthScreen = Dimensions.get("window").width;
 
@@ -57,6 +61,16 @@ export default function RestaurantInfo({ navigation, route }) {
         description={restaurant.description}
         rating={restaurant.rating}
       />
+
+      <RestauranMapInfo
+        name={restaurant.name}
+        location={restaurant.location}
+        address={restaurant.address}
+        email={restaurant.email}
+        phone={formatPhone(restaurant.callingCode, restaurant.phone)}
+      />
+
+      <ListReviews navigation={navigation} idRestaurant={restaurant.id} />
     </ScrollView>
   );
 }
@@ -78,13 +92,44 @@ function TitleRestaurant({ name, description, rating }) {
   );
 }
 
+function RestauranMapInfo({ name, location, address, email, phone }) {
+  const listMapInfo = [
+    { text: address, iconName: "map-marker" },
+    { text: email, iconName: "at" },
+    { text: phone, iconName: "phone" },
+  ];
+
+  return (
+    <View style={styles.viewRestauranMapInfo}>
+      <Text style={styles.restaurantMapInfoTitle}>
+        Información sobre el restaurante
+      </Text>
+
+      <MapRestaurant location={location} name={name} height={150} />
+
+      {map(listMapInfo, (item, index) => (
+        <ListItem key={index} style={styles.containerListItem}>
+          <Icon
+            type="material-community"
+            name={item.iconName}
+            color="#f41c24"
+          />
+          <ListItem.Content>
+            <ListItem.Title>{item.text}</ListItem.Title>
+          </ListItem.Content>
+        </ListItem>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   ViewBody: {
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
   viewRestaurantTitle: {
-    padding: 15,
+    padding: 12,
   },
   viewRestaurantContainer: {
     flexDirection: "row",
@@ -100,5 +145,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: "gray",
     textAlign: "justify",
+  },
+  viewRestauranMapInfo: {
+    margin: 15,
+  },
+  restaurantMapInfoTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  containerListItem: {
+    borderBottomColor: "#f41c24",
+    borderBottomWidth: 1,
   },
 });
