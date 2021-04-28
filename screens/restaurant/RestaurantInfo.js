@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   Alert,
   Dimensions,
@@ -13,7 +13,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { map } from "lodash";
 import firebase from "firebase/app";
 
-import { getDocumentById } from "../../utils/actions";
+import {
+  addDocumentWithoutId,
+  getCurrentUser,
+  getDocumentById,
+  getIsFavorite,
+  deleteFavorite,
+} from "../../utils/actions";
 import { formatPhone } from "../../utils/helpers";
 import Loading from "../../components/Loading";
 import CarouselImages from "../../components/CarouselImages";
@@ -30,6 +36,7 @@ export default function RestaurantInfo({ navigation, route }) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [userLogged, setUserLogged] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   navigation.setOptions({ title: name });
 
@@ -37,26 +44,47 @@ export default function RestaurantInfo({ navigation, route }) {
     user ? setUserLogged(true) : setUserLogged(false);
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      async function getDataById() {
-        const response = await getDocumentById("restaurants", id);
-        if (response.statusResponse) {
-          setRestaurant(response.document);
-        } else {
-          setRestaurant({});
-          Alert.alert.show(
-            "Ocurrio un problema cargando el restaurant, intente mas tarde.",
-            3000
-          );
-        }
+  // useFocusEffect(
+  //   useCallback(() => {
+
+  //   }, [])
+  // );
+
+  useEffect(() => {
+    async function getDataById() {
+      const response = await getDocumentById("restaurants", id);
+      if (response.statusResponse) {
+        setRestaurant(response.document);
+      } else {
+        setRestaurant({});
+        Alert.alert.show(
+          "Ocurrio un problema cargando el restaurant, intente mas tarde.",
+          3000
+        );
       }
+    }
 
-      getDataById();
-    }, [])
-  );
+    getDataById();
+  }, []);
 
-  const addFavorite = () => {
+  useEffect(() => {
+    async function validateUserAndRestauranr() {
+      if (userLogged && restaurant) {
+        const response = await getIsFavorite(
+          restaurant.id,
+          getCurrentUser().uid
+        );
+        response.statusResponse && setIsFavorite(response.isFavorite);
+      }
+    }
+    validateUserAndRestauranr();
+  }, [userLogged, restaurant]);
+
+  if (!restaurant) {
+    return <Loading isVisible={true} text="Cargando" />;
+  }
+
+  const addFavorite = async () => {
     if (!userLogged) {
       toastRef.current.show(
         "Debes iniciar sesion para agregar a favorito",
@@ -64,11 +92,27 @@ export default function RestaurantInfo({ navigation, route }) {
       );
       return;
     }
+    setLoading(true);
 
-    console.log("Fuck yeah favorit!!!e");
+    const response = await addDocumentWithoutId("favorites", {
+      idUser: getCurrentUser().uid,
+      idRestaurant: restaurant.id,
+    });
+
+    setLoading(false);
+
+    if (response.statusResponse) {
+      setIsFavorite(true);
+      toastRef.current.show("Restaurante marcado como favorito", 3000);
+    } else {
+      toastRef.current.show(
+        "No se pudo marcar el restaurante como favorito",
+        3000
+      );
+    }
   };
 
-  const removeFavorite = () => {
+  const removeFavorite = async () => {
     if (!userLogged) {
       toastRef.current.show(
         "Debes iniciar sesion para remover a favorito",
@@ -77,12 +121,20 @@ export default function RestaurantInfo({ navigation, route }) {
       return;
     }
 
-    console.log("Fuck yeah favorit!!!e");
-  };
+    setLoading(true);
+    const response = await deleteFavorite(restaurant.id);
+    setLoading(false);
 
-  if (!restaurant) {
-    return <Loading isVisible={true} text="Cargando" />;
-  }
+    if (response.statusResponse) {
+      setIsFavorite(false);
+      toastRef.current.show("Restaurante eliminado de favorito", 3000);
+    } else {
+      toastRef.current.show(
+        "No se pudo eliminar el restaurante de favorito",
+        3000
+      );
+    }
+  };
 
   return (
     <ScrollView style={styles.ViewBody}>
@@ -99,7 +151,7 @@ export default function RestaurantInfo({ navigation, route }) {
           type="material-community"
           name={isFavorite ? "heart" : "heart-outline"}
           onPress={isFavorite ? removeFavorite : addFavorite}
-          color={isFavorite ? "#ffffff" : "#f41c24"}
+          color="#f41c24"
           size={35}
           underlayColor="transparent"
         />
@@ -122,6 +174,7 @@ export default function RestaurantInfo({ navigation, route }) {
       <ListReviews navigation={navigation} idRestaurant={restaurant.id} />
 
       <Toast ref={toastRef} position="top" opacity={0.9} />
+      <Loading isVisible={loading} text="Por favor espere..." />
     </ScrollView>
   );
 }
@@ -211,11 +264,13 @@ const styles = StyleSheet.create({
   },
   viewFavorite: {
     position: "absolute",
-    top: 0,
-    right: 0,
+    top: 5,
+    right: 5,
     backgroundColor: "#ffffff",
-    borderBottomLeftRadius: 100,
+    shadowColor: "black",
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
+    borderRadius: 50,
     padding: 5,
-    paddingLeft: 15,
   },
 });
