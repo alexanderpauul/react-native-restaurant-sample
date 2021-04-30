@@ -2,6 +2,7 @@ import { firebaseApp } from "./firebase";
 import * as firebase from "firebase";
 import "firebase/firestore";
 import { filetoBlob } from "./helpers";
+import { map } from "lodash";
 
 const db = firebase.firestore(firebaseApp);
 
@@ -287,6 +288,61 @@ export const deleteFavorite = async (idRestaurant) => {
     response.forEach(async (doc) => {
       const favoriteId = doc.id;
       await db.collection("favorites").doc(favoriteId).delete();
+    });
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
+
+export const getFavorites = async (idRestaurant) => {
+  const result = { statusResponse: true, error: null, favorites: [] };
+
+  try {
+    const response = await db
+      .collection("favorites")
+      .where("idUser", "==", getCurrentUser().uid)
+      .get();
+
+    const restauransId = [];
+
+    response.forEach((doc) => {
+      const favorite = doc.data();
+      restauransId.push(favorite.idRestaurant);
+    });
+
+    await Promise.all(
+      map(restauransId, async (restauranId) => {
+        const responseCol = await getDocumentById("restaurants", restauranId);
+        if (responseCol.statusResponse) {
+          result.favorites.push(responseCol.document);
+        }
+      })
+    );
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
+
+export const getTopRestaurant = async (limit) => {
+  const result = { statusResponse: true, error: null, restaurants: [] };
+
+  try {
+    const response = await db
+      .collection("restaurants")
+      .orderBy("rating", "desc")
+      .limit(limit)
+      .get();
+
+    response.forEach((doc) => {
+      const restaurant = doc.data();
+      restaurant.id = doc.id;
+      result.restaurants.push(restaurant);
     });
   } catch (error) {
     result.statusResponse = false;

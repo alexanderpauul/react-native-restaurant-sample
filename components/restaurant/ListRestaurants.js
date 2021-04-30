@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { ActivityIndicator } from "react-native";
 import {
   TouchableOpacity,
@@ -16,7 +16,6 @@ export default function ListRestaurants({
   navigation,
   handleLoadMore,
 }) {
-  const navListRef = useRef(null);
   return (
     <View>
       <FlatList
@@ -25,11 +24,7 @@ export default function ListRestaurants({
         onEndReachedThreshold={0.5}
         onEndReached={handleLoadMore}
         renderItem={(restaurant) => (
-          <Restaurant
-            ref={navListRef}
-            restaurant={restaurant}
-            navigation={navigation}
-          />
+          <Restaurant restaurant={restaurant} navigation={navigation} />
         )}
       />
     </View>
