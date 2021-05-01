@@ -16,9 +16,13 @@ export default function UserLogged() {
   const [user, setUser] = useState(null);
   const [reloadUser, setReloadUser] = useState(false);
 
+
   useEffect(() => {
+
     setUser(getCurrentUser());
     setReloadUser(false);
+
+
   }, [reloadUser]);
 
   return (

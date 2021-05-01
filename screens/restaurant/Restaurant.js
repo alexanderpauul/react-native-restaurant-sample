@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Icon } from "react-native-elements";
 import { useFocusEffect } from "@react-navigation/native";
@@ -23,9 +23,11 @@ export default function Restaurant({ navigation }) {
   const limitRestaurantes = 10;
 
   useEffect(() => {
+  
     firebase.auth().onAuthStateChanged((userInfo) => {
       userInfo ? setUser(true) : setUser(false);
     });
+
   }, []);
 
   useFocusEffect(

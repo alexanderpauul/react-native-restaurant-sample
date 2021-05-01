@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Avatar, Button, Rating } from "react-native-elements";
 import { map, size } from "lodash";
@@ -17,12 +17,14 @@ export default function ListReviews({ navigation, idRestaurant }) {
   });
 
   useEffect(() => {
+
     (async () => {
       const response = await getRestaurantReviews(idRestaurant);
       if (response.statusResponse) {
         setReviews(response.reviews);
       }
     })();
+
   });
 
   return (
@@ -52,7 +54,7 @@ export default function ListReviews({ navigation, idRestaurant }) {
       )}
       {size(reviews) > 0 &&
         map(reviews, (reviewDocument, index) => (
-          <Review reviewDocument={reviewDocument} />
+          <Review reviewDocument={reviewDocument} key={index}/>
         ))}
     </View>
   );

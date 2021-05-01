@@ -1,10 +1,15 @@
+import { filetoBlob } from "./helpers";
+import { map } from "lodash";
+import { FireSQL } from "firesql";
 import { firebaseApp } from "./firebase";
 import * as firebase from "firebase";
 import "firebase/firestore";
-import { filetoBlob } from "./helpers";
-import { map } from "lodash";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 const db = firebase.firestore(firebaseApp);
+const fireSQL = new FireSQL(firebase.firestore(), { includeId: "id" });
 
 export const isUserLogged = async () => {
   let isLogged = false;
@@ -306,18 +311,15 @@ export const getFavorites = async (idRestaurant) => {
       .where("idUser", "==", getCurrentUser().uid)
       .get();
 
-    const restauransId = [];
-
-    response.forEach((doc) => {
-      const favorite = doc.data();
-      restauransId.push(favorite.idRestaurant);
-    });
-
     await Promise.all(
-      map(restauransId, async (restauranId) => {
-        const responseCol = await getDocumentById("restaurants", restauranId);
-        if (responseCol.statusResponse) {
-          result.favorites.push(responseCol.document);
+      map(response.docs, async (doc) => {
+        const favorite = doc.data();
+        const restaurant = await getDocumentById(
+          "restaurants",
+          favorite.idRestaurant
+        );
+        if (restaurant.statusResponse) {
+          result.favorites.push(restaurant.document);
         }
       })
     );
@@ -350,4 +352,49 @@ export const getTopRestaurant = async (limit) => {
   }
 
   return result;
+};
+
+export const searchRestaurant = async (criteria) => {
+  const result = { statusResponse: true, error: null, restaurants: [] };
+
+  try {
+    result.restaurants = await fireSQL.query(
+      `SELECT * FROM restaurants WHERE name LIKE '${criteria}%'`
+    );
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
+
+export const getToken = async () => {
+  if (!Constants.isDevice) {
+    Alert.alert(
+      "Debes de utilizar un dispositivo fisico para las notificaciones.",
+      3000
+    );
+    return;
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  if (existingStatus !== "granted") {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== "granted") {
+    Alert.alert("Debes dar permisos para acceder a las notificaciones.", 3000);
+  }
+
+  const token = (await Notifications.getExpoPushTokenAsync()).data;
+
+  if (Platform.OS == "android") {
+    Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: "",
+    });
+  }
 };

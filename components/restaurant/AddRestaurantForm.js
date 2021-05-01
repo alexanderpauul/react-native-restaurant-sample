@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Alert,
   Dimensions,
@@ -200,13 +200,16 @@ function MapRestaurant({
   toastRef,
 }) {
   const [newRegion, setNewRegion] = useState(null);
+
   useEffect(() => {
+
     (async () => {
       const response = await getCurrentLocation();
       if (response.status) {
         setNewRegion(response.location);
       }
     })();
+
   }, []);
 
   const confirmLocation = () => {
@@ -216,7 +219,7 @@ function MapRestaurant({
   };
 
   return (
-    <Modal isVisible={isVisibleMap} setIsVisibleMap={setIsVisibleMap}>
+    <Modal isVisible={isVisibleMap} setVisible={setIsVisibleMap}>
       <View>
         {newRegion && (
           <MapView
@@ -341,7 +344,6 @@ function FormAdd({
     setFormData({ ...formData, [type]: e.nativeEvent.text });
   };
 
-  console.log(locationRestaurant);
   return (
     <View>
       <Input

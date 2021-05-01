@@ -10,7 +10,7 @@ import {
 import { ListItem, Rating, Icon, Input, Button } from "react-native-elements";
 import Toast from "react-native-easy-toast";
 import { useFocusEffect } from "@react-navigation/native";
-import { map } from "lodash";
+import { isTypedArray, map } from "lodash";
 import firebase from "firebase/app";
 
 import {
@@ -20,7 +20,12 @@ import {
   getIsFavorite,
   deleteFavorite,
 } from "../../utils/actions";
-import { formatPhone } from "../../utils/helpers";
+import {
+  callNumber,
+  formatPhone,
+  sendEmail,
+  sendWhatsApp,
+} from "../../utils/helpers";
 import Loading from "../../components/Loading";
 import CarouselImages from "../../components/CarouselImages";
 import MapRestaurant from "../../components/restaurant/MapRestaurant";
@@ -37,18 +42,14 @@ export default function RestaurantInfo({ navigation, route }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [userLogged, setUserLogged] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   navigation.setOptions({ title: name });
 
   firebase.auth().onAuthStateChanged((user) => {
     user ? setUserLogged(true) : setUserLogged(false);
+    setCurrentUser(user);
   });
-
-  // useFocusEffect(
-  //   useCallback(() => {
-
-  //   }, [])
-  // );
 
   useEffect(() => {
     async function getDataById() {
@@ -169,6 +170,7 @@ export default function RestaurantInfo({ navigation, route }) {
         address={restaurant.address}
         email={restaurant.email}
         phone={formatPhone(restaurant.callingCode, restaurant.phone)}
+        currentUser={currentUser}
       />
 
       <ListReviews navigation={navigation} idRestaurant={restaurant.id} />
@@ -196,12 +198,47 @@ function TitleRestaurant({ name, description, rating }) {
   );
 }
 
-function RestauranMapInfo({ name, location, address, email, phone }) {
+function RestauranMapInfo({
+  name,
+  location,
+  address,
+  email,
+  phone,
+  currentUser,
+}) {
   const listMapInfo = [
-    { text: address, iconName: "map-marker" },
-    { text: email, iconName: "at" },
-    { text: phone, iconName: "phone" },
+    { type: "address", text: address, iconLeft: "map-marker" },
+    { type: "email", text: email, iconLeft: "at" },
+    { type: "phone", text: phone, iconLeft: "phone", iconRight: "whatsapp" },
   ];
+
+  const actionLeft = (type) => {
+    if (type == "phone") {
+      callNumber(phone);
+    } else if (type == "email") {
+      if (currentUser) {
+        sendEmail(
+          email,
+          `Soy ${currentUser.displayName}, estoy interesado en sus servicios.`
+        );
+      } else {
+        sendEmail(email, "Estoy interesado en sus servicios.");
+      }
+    }
+  };
+
+  const actionRight = (type) => {
+    if (type == "phone") {
+      if (currentUser) {
+        sendWhatsApp(
+          phone,
+          `Soy ${currentUser.displayName}, estoy interesado en sus servicios.`
+        );
+      } else {
+        sendEmail(phone, "Interesado", "Estoy interesado en sus servicios.");
+      }
+    }
+  };
 
   return (
     <View style={styles.viewRestauranMapInfo}>
@@ -215,12 +252,22 @@ function RestauranMapInfo({ name, location, address, email, phone }) {
         <ListItem key={index} style={styles.containerListItem}>
           <Icon
             type="material-community"
-            name={item.iconName}
+            name={item.iconLeft}
             color="#f41c24"
+            onPress={() => actionLeft(item.type)}
           />
           <ListItem.Content>
             <ListItem.Title>{item.text}</ListItem.Title>
           </ListItem.Content>
+
+          {item.iconRight && (
+            <Icon
+              type="material-community"
+              name={item.iconRight}
+              color="#f41c24"
+              onPress={() => actionRight(item.type)}
+            />
+          )}
         </ListItem>
       ))}
     </View>
