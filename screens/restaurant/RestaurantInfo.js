@@ -9,8 +9,7 @@ import {
 } from "react-native";
 import { ListItem, Rating, Icon, Input, Button } from "react-native-elements";
 import Toast from "react-native-easy-toast";
-import { useFocusEffect } from "@react-navigation/native";
-import { isTypedArray, map } from "lodash";
+import { isEmpty, map } from "lodash";
 import firebase from "firebase/app";
 
 import {
@@ -21,6 +20,7 @@ import {
   deleteFavorite,
   sendPushNotification,
   setNotificationMessage,
+  getUserFavorites,
 } from "../../utils/actions";
 import {
   callNumber,
@@ -205,37 +205,64 @@ function SendMessage({
   const [message, setMessage] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const validForm = () => {
+    let isValid = true;
+
+    if (isEmpty(title)) {
+      setErrorTitle("Debes ingresar un titulo a tu mensaje");
+      isValid = false;
+    }
+
+    if (isEmpty(message)) {
+      setErrorMessage("Debes ingresar un mensaje");
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const sentNotification = async () => {
-    setLoading(true);
-    const resultToken = await getDocumentById("users", getCurrentUser().uid);
-    if (!resultToken.statusResponse) {
-      setLoading(false);
-      Alert.alert("No se pudo obtener el token del usuario");
+    if (!validForm()) {
       return;
     }
+
+    setLoading(true);
+    // const resultToken = await getDocumentById("users", getCurrentUser().uid);
+    // if (!resultToken.statusResponse) {
+    //   setLoading(false);
+    //   Alert.alert("No se pudo obtener el token del usuario");
+    //   return;
+    // }
 
     const userName = getCurrentUser().displayName
       ? getCurrentUser().displayName
       : "Anomino";
-
     const theMessage = `${message}, del restaurante: ${restaurant.name}`;
 
-    const messageNotification = setNotificationMessage(
-      resultToken.document.token,
-      `${userName}, dijo: ${title}`,
-      theMessage,
-      { data: theMessage }
+    const usersFavorites = await getUserFavorites(restaurant.id);
+    if (!usersFavorites.statusResponse) {
+      setLoading(false);
+      Alert.alert("Error enviado la notificacion.");
+      return;
+    }
+
+    await Promise.all(
+      map(usersFavorites.users, async (user) => {
+        const messageNotification = setNotificationMessage(
+          user.token,
+          `${userName}, dijo: ${title}`,
+          theMessage,
+          { data: theMessage }
+        );
+
+        await sendPushNotification(messageNotification);
+      })
     );
 
-    const responseNotificacion = await sendPushNotification(
-      messageNotification
-    );
-    if (responseNotificacion) {
-      Alert.alert("Se ha enviado el mensaje.");
-    } else {
-      Alert.alert("Ocurrio un problema enviando el mensaje.");
-    }
     setLoading(false);
+    setModalNotification(false);
+    setTitle(null);
+    setMessage(null);
   };
 
   return (
@@ -440,6 +467,6 @@ const styles = StyleSheet.create({
   },
   btnSendContainer: {
     width: "95%",
-    marginBottom: 10,
+    marginVertical: 10,
   },
 });

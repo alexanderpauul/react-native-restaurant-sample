@@ -471,3 +471,29 @@ export const setNotificationMessage = (token, title, body, data) => {
 
   return message;
 };
+
+export const getUserFavorites = async (idRestaurant) => {
+  const result = { statusResponse: true, error: null, users: [] };
+
+  try {
+    const response = await db
+      .collection("favorites")
+      .where("idRestaurant", "==", idRestaurant)
+      .get();
+
+    await Promise.all(
+      map(response.docs, async (doc) => {
+        const favorite = doc.data();
+        const user = await getDocumentById("users", favorite.idUser);
+        if (user.statusResponse) {
+          result.users.push(user.document);
+        }
+      })
+    );
+  } catch (error) {
+    result.statusResponse = false;
+    result.error = error;
+  }
+
+  return result;
+};
