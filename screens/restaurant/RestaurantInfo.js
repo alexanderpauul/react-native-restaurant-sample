@@ -19,6 +19,8 @@ import {
   getDocumentById,
   getIsFavorite,
   deleteFavorite,
+  sendPushNotification,
+  setNotificationMessage,
 } from "../../utils/actions";
 import {
   callNumber,
@@ -30,6 +32,7 @@ import Loading from "../../components/Loading";
 import CarouselImages from "../../components/CarouselImages";
 import MapRestaurant from "../../components/restaurant/MapRestaurant";
 import ListReviews from "../../components/restaurant/ListReviews";
+import Modal from "../../components/Modal";
 
 const widthScreen = Dimensions.get("window").width;
 
@@ -43,6 +46,7 @@ export default function RestaurantInfo({ navigation, route }) {
   const [userLogged, setUserLogged] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [modalNotification, setModalNotification] = useState(false);
 
   navigation.setOptions({ title: name });
 
@@ -171,13 +175,99 @@ export default function RestaurantInfo({ navigation, route }) {
         email={restaurant.email}
         phone={formatPhone(restaurant.callingCode, restaurant.phone)}
         currentUser={currentUser}
+        setLoading={setLoading}
+        setModalNotification={setModalNotification}
       />
 
       <ListReviews navigation={navigation} idRestaurant={restaurant.id} />
 
+      <SendMessage
+        modalNotification={modalNotification}
+        setModalNotification={setModalNotification}
+        setLoading={setLoading}
+        restaurant={restaurant}
+      />
+
       <Toast ref={toastRef} position="top" opacity={0.9} />
       <Loading isVisible={loading} text="Por favor espere..." />
     </ScrollView>
+  );
+}
+
+function SendMessage({
+  modalNotification,
+  setModalNotification,
+  setLoading,
+  restaurant,
+}) {
+  const [title, setTitle] = useState(null);
+  const [errorTitle, setErrorTitle] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const sentNotification = async () => {
+    setLoading(true);
+    const resultToken = await getDocumentById("users", getCurrentUser().uid);
+    if (!resultToken.statusResponse) {
+      setLoading(false);
+      Alert.alert("No se pudo obtener el token del usuario");
+      return;
+    }
+
+    const userName = getCurrentUser().displayName
+      ? getCurrentUser().displayName
+      : "Anomino";
+
+    const theMessage = `${message}, del restaurante: ${restaurant.name}`;
+
+    const messageNotification = setNotificationMessage(
+      resultToken.document.token,
+      `${userName}, dijo: ${title}`,
+      theMessage,
+      { data: theMessage }
+    );
+
+    const responseNotificacion = await sendPushNotification(
+      messageNotification
+    );
+    if (responseNotificacion) {
+      Alert.alert("Se ha enviado el mensaje.");
+    } else {
+      Alert.alert("Ocurrio un problema enviando el mensaje.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <Modal isVisible={modalNotification} setVisible={setModalNotification}>
+      <View style={styles.modalContainer}>
+        <Text style={styles.textModal}>
+          Enviale un mensaje a los amantes de {restaurant.name}
+        </Text>
+
+        <Input
+          placeholder="Titulo del mensaje..."
+          onChangeText={(text) => setTitle(text)}
+          value={title}
+          errorMessage={errorTitle}
+        />
+        <Input
+          placeholder="Mensaje..."
+          onChangeText={(text) => setMessage(text)}
+          value={message}
+          errorMessage={errorMessage}
+          multiline
+          style={styles.textArea}
+        />
+
+        <Button
+          title="Enviar Mensaje"
+          buttonStyle={styles.btnSend}
+          containerStyle={styles.btnSendContainer}
+          onPress={() => sentNotification()}
+        />
+      </View>
+    </Modal>
   );
 }
 
@@ -205,9 +295,16 @@ function RestauranMapInfo({
   email,
   phone,
   currentUser,
+  setLoading,
+  setModalNotification,
 }) {
   const listMapInfo = [
-    { type: "address", text: address, iconLeft: "map-marker" },
+    {
+      type: "address",
+      text: address,
+      iconLeft: "map-marker",
+      iconRight: "message-text-outline",
+    },
     { type: "email", text: email, iconLeft: "at" },
     { type: "phone", text: phone, iconLeft: "phone", iconRight: "whatsapp" },
   ];
@@ -237,6 +334,8 @@ function RestauranMapInfo({
       } else {
         sendEmail(phone, "Interesado", "Estoy interesado en sus servicios.");
       }
+    } else if (type == "address") {
+      setModalNotification(true);
     }
   };
 
@@ -319,5 +418,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     borderRadius: 50,
     padding: 5,
+  },
+  modalContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  textModal: {
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 20,
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  textArea: {
+    height: 50,
+    paddingHorizontal: 10,
+  },
+  btnSend: {
+    backgroundColor: "#f41c24",
+  },
+  btnSendContainer: {
+    width: "95%",
+    marginBottom: 10,
   },
 });
