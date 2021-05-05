@@ -19,9 +19,16 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.alpauul.restaurants",
+      "config": {
+        "googleSignIn": {
+          "reservedClientId": "com.googleusercontent.apps.39888140313-gk4gqdaj7ttfk4clc6outur6s1jfacci"
+        }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
-      "package": "com.alpauul.restaurants",      
+      "package": "com.alpauul.restaurants",     
+      "googleServicesFile": "./google-services.json", 
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"

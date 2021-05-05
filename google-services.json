@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "39888140313",
+    "project_id": "react-native-restaurant-sample",
+    "storage_bucket": "react-native-restaurant-sample.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:39888140313:android:2690064c0fbb16a8371288",
+        "android_client_info": {
+          "package_name": "com.alpauul.restaurants"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "39888140313-kbavqdjbe79dkk5ne7121f54kml1m66f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alpauul.restaurants",
+            "certificate_hash": "b93fc220988630adfec8b6c41cd476d105f964a0"
+          }
+        },
+        {
+          "client_id": "39888140313-bkqds189lv5vp04gouevumvcc6k4ho0m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYZOFV7wYhcpEU6EQBjtclXLKi8GzglJI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "39888140313-bkqds189lv5vp04gouevumvcc6k4ho0m.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "39888140313-gk4gqdaj7ttfk4clc6outur6s1jfacci.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.alpauul.restaurants"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
