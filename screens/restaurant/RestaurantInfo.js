@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Alert,
   Dimensions,
@@ -8,10 +8,16 @@ import {
   ScrollView,
 } from "react-native";
 import { ListItem, Rating, Icon, Input, Button } from "react-native-elements";
-import Toast from "react-native-easy-toast";
-import { isEmpty, map } from "lodash";
 import firebase from "firebase/app";
+import { isEmpty, map } from "lodash";
+import Toast from "react-native-easy-toast";
 
+import {
+  callNumber,
+  formatPhone,
+  sendEmail,
+  sendWhatsApp,
+} from "../../utils/helpers";
 import {
   addDocumentWithoutId,
   getCurrentUser,
@@ -22,44 +28,36 @@ import {
   setNotificationMessage,
   getUserFavorites,
 } from "../../utils/actions";
-import {
-  callNumber,
-  formatPhone,
-  sendEmail,
-  sendWhatsApp,
-} from "../../utils/helpers";
+import Modal from "../../components/Modal";
 import Loading from "../../components/Loading";
 import CarouselImages from "../../components/CarouselImages";
-import MapRestaurant from "../../components/restaurant/MapRestaurant";
 import ListReviews from "../../components/restaurant/ListReviews";
-import Modal from "../../components/Modal";
+import MapRestaurant from "../../components/restaurant/MapRestaurant";
 
 const widthScreen = Dimensions.get("window").width;
 
 export default function RestaurantInfo({ navigation, route }) {
-  const { id, name } = route.params;
-  const toastRef = useRef();
-
   const [restaurant, setRestaurant] = useState(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [userLogged, setUserLogged] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [modalNotification, setModalNotification] = useState(false);
 
+  const { id, name } = route.params;
   navigation.setOptions({ title: name });
+  const toastRef = useRef();
 
-  firebase.auth().onAuthStateChanged((user) => {
-    user ? setUserLogged(true) : setUserLogged(false);
-    setCurrentUser(user);
-  });
+  const user = firebase.auth().currentUser;
+  const ref = firebase.firestore().collection("restaurants");
+  const refFavorites = firebase.firestore().collection("favorites");
 
   useEffect(() => {
-    async function getDataById() {
-      const response = await getDocumentById("restaurants", id);
-      if (response.statusResponse) {
-        setRestaurant(response.document);
+    let record = {};
+    return ref.doc(id).onSnapshot((snap) => {
+      record = { id: snap.id, ...snap.data() };
+
+      if (record) {
+        setRestaurant(record);
       } else {
         setRestaurant({});
         Alert.alert.show(
@@ -67,78 +65,74 @@ export default function RestaurantInfo({ navigation, route }) {
           3000
         );
       }
-    }
-
-    getDataById();
+    });
   }, []);
 
   useEffect(() => {
-    async function validateUserAndRestauranr() {
-      if (userLogged && restaurant) {
-        const response = await getIsFavorite(
-          restaurant.id,
-          getCurrentUser().uid
-        );
-        response.statusResponse && setIsFavorite(response.isFavorite);
+    async function getFavoritesRestaurants() {
+      if (user && restaurant) {
+        return refFavorites
+          .where("idRestaurant", "==", id)
+          .where("idUser", "==", user.uid)
+          .onSnapshot((querySnapshot) => {
+            if (querySnapshot.docs.length > 0) {
+              setIsFavorite(true);
+            } else {
+              setIsFavorite(false);
+            }
+          });
       }
     }
-    validateUserAndRestauranr();
-  }, [userLogged, restaurant]);
+
+    getFavoritesRestaurants();
+  }, [user, restaurant]);
 
   if (!restaurant) {
-    return <Loading isVisible={true} text="Cargando" />;
+    return <Loading isVisible={loading} text="Cargando" />;
   }
 
   const addFavorite = async () => {
-    if (!userLogged) {
-      toastRef.current.show(
-        "Debes iniciar sesion para agregar a favorito",
-        3000
-      );
+    if (!user) {
+      toastRef.current.show("Debes iniciar sesion.", 3000);
       return;
     }
+
     setLoading(true);
 
-    const response = await addDocumentWithoutId("favorites", {
-      idUser: getCurrentUser().uid,
-      idRestaurant: restaurant.id,
+    const response = await refFavorites.add({
+      idUser: user.uid,
+      idRestaurant: id,
     });
 
     setLoading(false);
 
     if (response.statusResponse) {
       setIsFavorite(true);
-      toastRef.current.show("Restaurante marcado como favorito", 3000);
+      toastRef.current.show("Agregado a favorito.", 3000);
     } else {
-      toastRef.current.show(
-        "No se pudo marcar el restaurante como favorito",
-        3000
-      );
+      toastRef.current.show("No se pudo agregar favorito", 3000);
     }
   };
 
   const removeFavorite = async () => {
-    if (!userLogged) {
-      toastRef.current.show(
-        "Debes iniciar sesion para remover a favorito",
-        3000
-      );
+    if (!user) {
+      toastRef.current.show("Debes iniciar sesion.", 3000);
       return;
     }
 
     setLoading(true);
-    const response = await deleteFavorite(restaurant.id);
-    setLoading(false);
 
-    if (response.statusResponse) {
-      setIsFavorite(false);
-      toastRef.current.show("Restaurante eliminado de favorito", 3000);
-    } else {
-      toastRef.current.show(
-        "No se pudo eliminar el restaurante de favorito",
-        3000
-      );
-    }
+    refFavorites
+      .where("idRestaurant", "==", id)
+      .where("idUser", "==", user.uid)
+      .onSnapshot((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          refFavorites.doc(doc.id).delete();
+          setIsFavorite(false);
+        });
+      });
+
+    setLoading(false);
   };
 
   return (
@@ -174,7 +168,7 @@ export default function RestaurantInfo({ navigation, route }) {
         address={restaurant.address}
         email={restaurant.email}
         phone={formatPhone(restaurant.callingCode, restaurant.phone)}
-        currentUser={currentUser}
+        currentUser={user}
         setLoading={setLoading}
         setModalNotification={setModalNotification}
       />
@@ -204,7 +198,7 @@ function SendMessage({
   const [errorTitle, setErrorTitle] = useState(null);
   const [message, setMessage] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
-
+  const user = firebase.auth().currentUser;
   const validForm = () => {
     let isValid = true;
 
@@ -227,16 +221,8 @@ function SendMessage({
     }
 
     setLoading(true);
-    // const resultToken = await getDocumentById("users", getCurrentUser().uid);
-    // if (!resultToken.statusResponse) {
-    //   setLoading(false);
-    //   Alert.alert("No se pudo obtener el token del usuario");
-    //   return;
-    // }
 
-    const userName = getCurrentUser().displayName
-      ? getCurrentUser().displayName
-      : "Anomino";
+    const userName = user.displayName ? user.displayName : "Anomino";
     const theMessage = `${message}, del restaurante: ${restaurant.name}`;
 
     const usersFavorites = await getUserFavorites(restaurant.id);

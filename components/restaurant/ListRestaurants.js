@@ -1,6 +1,6 @@
-import React from "react";
-import { ActivityIndicator } from "react-native";
+import React, { useState, useEffect } from "react";
 import {
+  ActivityIndicator,
   TouchableOpacity,
   FlatList,
   StyleSheet,
@@ -8,30 +8,94 @@ import {
   View,
 } from "react-native";
 import { Image } from "react-native-elements";
+
 import { size } from "lodash";
+import firebase from "firebase/app";
+import Loading from "../Loading";
 import { formatPhone } from "../../utils/helpers";
 
-export default function ListRestaurants({
-  restaurants,
-  navigation,
-  handleLoadMore,
-}) {
+export default function ListRestaurants({ navigation }) {
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const ref = firebase.firestore().collection("restaurants");
+  const limitRestaurantes = 50;
+
+  useEffect(() => {
+    setLoading(true);
+
+    return ref
+      .orderBy("createDate", "desc")
+      .limitToLast(limitRestaurantes)
+      .onSnapshot((snap) => {
+        const records = [];
+        snap.forEach((doc) => {
+          const {
+            name,
+            address,
+            phone,
+            callingCode,
+            createBy,
+            createDate,
+            description,
+            email,
+            images,
+            location,
+            quantityVoting,
+            rating,
+            ratingTotal,
+          } = doc.data();
+
+          records.push({
+            id: doc.id,
+            name,
+            address,
+            phone,
+            callingCode,
+            createBy,
+            createDate,
+            description,
+            email,
+            images,
+            location,
+            quantityVoting,
+            rating,
+            ratingTotal,
+          });
+        });
+
+        if (records) {
+          setRestaurants(records);
+          setLoading(false);
+        }
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <View>
-      <FlatList
-        data={restaurants}
-        keyExtractor={(item, index) => index.toString()}
-        onEndReachedThreshold={0.5}
-        onEndReached={handleLoadMore}
-        renderItem={(restaurant) => (
-          <Restaurant restaurant={restaurant} navigation={navigation} />
-        )}
-      />
+      {size(restaurants) > 0 ? (
+        <FlatList
+          data={restaurants}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={(restaurant) => (
+            <Restaurant restaurant={restaurant} navigation={navigation} />
+          )}
+        />
+      ) : (
+        <View style={styles.notFoundView}>
+          <Text style={styles.notFoundText}>
+            No hay restaurantes registrados.
+          </Text>
+        </View>
+      )}
+
+      <Loading isVisible={loading} text="Cargando restaurantes..." />
     </View>
   );
 }
 
-function Restaurant({ restaurant, navigation, handleLoadMore }) {
+function Restaurant({ restaurant, navigation }) {
   const {
     id,
     images,
@@ -99,5 +163,14 @@ const styles = StyleSheet.create({
     paddingTop: 2,
     color: "gray",
     width: "60%",
+  },
+  notFoundView: {
+    flex: 1,
+    justifyContent: "center",
+    alignSelf: "center",
+  },
+  notFoundText: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

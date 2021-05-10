@@ -8,6 +8,7 @@ import * as firebase from "firebase";
 import "firebase/firestore";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
+import Ref from "firebase/app";
 
 const db = firebase.firestore(firebaseApp);
 const fireSQL = new FireSQL(firebase.firestore(), { includeId: "id" });
@@ -173,6 +174,8 @@ export const getRestaurants = async (limitRestaurantes) => {
 
   return result;
 };
+
+
 
 export const getMoreRestaurants = async (
   limitRestaurantes,

@@ -4,6 +4,7 @@ import Restaurant from "../screens/restaurant/Restaurant";
 import AddRestaurant from "../screens/restaurant/AddRestaurant";
 import RestaurantInfo from "../screens/restaurant/RestaurantInfo";
 import AddReviewRestaurant from "../screens/restaurant/AddReviewRestaurant";
+import TesterFirebase from "../screens/TesterFirebase";
 
 const Stack = createStackNavigator();
 
@@ -28,6 +29,12 @@ export default function RestaurantStack() {
         name="add-review-restaurant"
         component={AddReviewRestaurant}
         options={{ title: "Nuevo comentario" }}
+      />
+
+      <Stack.Screen
+        name="tester-firebase"
+        component={TesterFirebase}
+        options={{ title: "Testear" }}
       />
     </Stack.Navigator>
   );
